@@ -2,7 +2,7 @@ $(document).ready(function () {
 
     $.ajax({
         type: 'GET',
-        url: 'http://vending.us-east-1.elasticbeanstalk.com',
+        url: 'https://vending.us-east-1.elasticbeanstalk.com',
         success: function (menuArray) {
             // get a reference to the 'vending-menu' div
             var vendingMenu = $('#vending-menu');
