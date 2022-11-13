@@ -1,197 +1,177 @@
 $(document).ready(function () {
-  loadItems();
-  addMoney();
-  purchaseItem();
+
+    loadItems();
+    purchase();
+
 });
 
-function loadItems(){
-  $.ajax({
-      type: 'GET',
-      url: 'http://vending.us-east-1.elasticbeanstalk.com/items',
-      success: function(itemArray) {
-        var itemsDiv = $('#allItems');
-        var count = 1;
-        $.each(itemArray, function(index, item) {
-            var itemInfo = '<div class="boxed'+count+'" onClick="selectItem('+item.id+')"><p ALIGN=Left>';
-            itemInfo += item.id +'</p><p ALIGN = Center>';
-            itemInfo += item.name + '<br><br>';
-            itemInfo += '$' + item.price + '<br><br>';
-            itemInfo += 'Quantity Left: ' + item.quantity + '<br>';
-            itemInfo += '</p></div>';
+function loadItems() {
+    clearTable();
+    var contentRows = $('#contentRows');
+    clearTable();
+    // $('changeReturn').hide();
+    $.ajax({
+        type: 'GET',
+        url: 'http://vending.us-east-1.elasticbeanstalk.com/items',
+        success: function (itemArray) {
 
-            itemsDiv.append(itemInfo);
-            count++;
+            let group = 0;
+            $.each(itemArray, function (index, item) {
+
+                var itemId = item.id;
+                var name = item.name;
+                var price = item.price;
+                var quantity = item.quantity;
+
+                var row;
+                group++;
+                //   if (group==4 ){
+                //     row = '<tr>';
+                // row += '<td>';
+                // row +='</td>';
+                // row += '</div>';
+                // row += '<th>';
+                // row += '</tr>';
+                // row += '</th>';
+
+                //   }
+                // <div class="grid" style="--bs-columns: 3;">;
+                // row = '<tr>';
+                if (group == 4 || group == 7 || group == 10) {
+                    row = '<tr>';
+                    // row = '</tr>';
+                    contentRows.append(row);
+                }
+                row = '<td class ="border m-5 p-1"  onclick="showItem(' + itemId + ')">' + itemId +
+                    '<p style="text-align:center">' + name + '</p>' +
+                    '<p style="text-align:center">' + '$' + + price + '</p>' +
+                    // '<p style="display:none;">' +    +'</p>' +
+                    '<p style="text-align:center">Quantity left: ' + quantity + '</p>'
+                '</td>';
+
+                //    if (group==4) {
+                //     row += '</div>';
+                //    }
+                // {/* </div>; */}
+
+
+                //  row += '</th>'; 
+
+                // if (group==4 ){
+                //     row = '<tr>';
+
+
+                //   }
+
+
+                contentRows.append(row);
+            })
+
+        },
+        error: function () {
+
+            $('#errorMessages')
+                .append($('<li>')
+                    .attr({ class: 'list-group-item list-group-item-danger' })
+                    .text('Error calling web service. Please try again later.'));
+
+        }
+    })
+
+
+}
+function showItem(itemId) {
+
+    $('#errorMessages').empty();
+    $('#itemNumber').val(itemId);
+
+}
+
+function addMoney(num) {
+
+    $('#totalMoney').val((Number($('#totalMoney').val()) + Number(num)).toFixed(2));
+    $('#errorMessages').empty();
+    // $('#totalMoney')=$('#totalMoney')+money.val(num);
+
+    //  var money=num;
+    //  var money2=document.getElementById('#totalMoney').value;
+
+    //  var sum= money+money2;
+
+
+    // $('#totalMoney').val(num);
+
+}
+
+function purchase() {
+    $('#makePurchase').click(function (event) {
+        $.ajax({
+            type: 'POST',
+            url: 'http://vending.us-east-1.elasticbeanstalk.com/money/' + $('#totalMoney').val() + '/item/' + $('#itemNumber').val(),
+            data: JSON.stringify({
+                amount: $('#totalMoney').val(),
+                id: $('#itemNumber').val()
+            }),
+
+
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            'dataType': 'json',
+
+            success: function (data, status) {
+                $('#changeReturn').show();
+                // var change = + data.quarters + ' Quarter(s) ' + data.dimes + ' Dime(s) ' + data.nickels + ' Nickel(s) ' + data.pennies + ' Pennies';
+                var change = "";
+                var quarters = + data.quarters + ' Quarter(s) ';
+                var dimes = + data.dimes + ' Dime(s) ';
+                var nickels = + data.nickels + ' Nickel(s) ';
+                var pennies = + data.pennies + ' Pennies';
+
+                if (!data.quarters == 0)
+                    change += quarters;
+                if (!data.dimes == 0)
+                    change += dimes;
+                if (!data.nickels == 0)
+                    change += nickels;
+                if (!data.pennies == 0)
+                    change += pennies;
+
+
+                $('#errorMessages').empty();
+                $('#messageVM').val('Thank you');
+                // //var display = response.responseJSON.message;
+                $('#change').val(change);
+            },
+
+
+            error: function (response) {
+                var displayMessage = response.responseJSON.message;
+                $('#messageVM').val(displayMessage);
+            }
+            //    error: function () {
+            //        $('#errorMessages')
+            //         .append($('<li>')
+            //         .attr({class: 'list-group-item list-group-item-danger'})
+            //         .text(data.property)); 
+            //         // console.log(data.property);
+            //    }
         })
-      },
-      error: function() {
-          alert('FAILURE!');
-      }
-  })
-}
-
-function addMoney(){
-    $('#addDollar').on('click', function() {
-      $('#messages').val('');
-      $('#change').val('');
-      $('#totalMoneyIn').val(((parseFloat($('#totalMoneyIn').val()))+1.00).toFixed(2));
-    });
-
-    $('#addQuarter').on('click', function() {
-      $('#messages').val('');
-      $('#change').val('');
-      $('#totalMoneyIn').val(((parseFloat($('#totalMoneyIn').val()))+0.25).toFixed(2));
-    });
-
-    $('#addDime').on('click', function() {
-      $('#messages').val('');
-      $('#change').val('');
-      $('#totalMoneyIn').val(((parseFloat($('#totalMoneyIn').val()))+0.10).toFixed(2));
-    });
-
-    $('#addNickel').on('click', function() {
-      $('#messages').val('');
-      $('#change').val('');
-      $('#totalMoneyIn').val(((parseFloat($('#totalMoneyIn').val()))+0.05).toFixed(2));
     });
 }
+//Pressing the change return button will clear the inputs, update the item list, and prepare for the next purchase.
+function clearInputs() {
 
-function selectItem(id){
-  $('#item').val(id);
-  $('#messages').val('');
-  $('#change').val('');
-}
-
-function purchaseItem(){
-    $('#makePurchase').on('click', function() {
-      if ($('#item').val() == ''){$('#messages').val('Please make a selection.');}else{ //if no item selected
-
-      $.ajax({ //if item selected
-          type: 'POST',
-          url: 'http://vending.us-east-1.elasticbeanstalk.com/money/'+$('#totalMoneyIn').val()+'/item/'+$('#item').val()+'',
-          success: function(change) {
-           // clearItems();
-            //loadItems(); //refresh item stock
-            $('#item').val(''); //refresh item selection
-            $('#totalMoneyIn').val(0.00.toFixed(2)); //refresh money in
-            $('#messages').val('Thank You!!');
-
-            var quarters = change.quarters;
-            var dimes = change.dimes;
-            var nickels = change.nickels;
-            var pennies = change.pennies;
-
-            var changeMessage = '';
-
-            if (quarters == 1){
-              changeMessage+= '1 quarter';
-            }
-            else if (quarters>1){
-              changeMessage+= quarters+' quarters';
-            }
-
-            if (dimes == 1){
-              if (quarters>=1) {changeMessage+=', ';}
-              changeMessage+= '1 dime';
-            }
-            else if (dimes>1){
-              if (quarters>=1) {changeMessage+=', ';}
-              changeMessage+=dimes+' dimes';
-            }
-
-            if (nickels == 1){
-              if (quarters>=1 || dimes>=1) {changeMessage+=', ';}
-              changeMessage+= '1 nickel';
-            }
-            else if (nickels>1){
-              if (quarters>=1 || dimes>=1) {changeMessage+=', ';}
-              changeMessage+= nickels+' nickels';
-            }
-
-            if (pennies == 1){
-              if (quarters>=1 || dimes>=1 || nickels>=1) {changeMessage+=', ';}
-              changeMessage+= '1 penny';
-            }
-            else if (pennies>1){
-              if (quarters>=1 || dimes>=1 || nickels>=1) {changeMessage+=', ';}
-              changeMessage+=pennies+' pennies';
-            }
-
-            $('#change').val(changeMessage); //display change returned
-
-          },
-          error: function(error) { //if insufficient funds or sold out
-              $('#messages').val(error.responseText.slice(12,-2));
-              //clearItems();
-             // loadItems(); //refresh item stock
-          }
-        })
-      }
-    });
-}
-
-function clearItems(){
-  $('#allItems').remove();
-
- var itemsDiv = $('.grid-container');
-  itemsDiv.append('<div id="allItems"></div>');
-}
-
-function returnChange(){
-  var money = $('#totalMoneyIn').val();
-  if (money==0){
+    $('#totalMoney').val('');
+    $('#messageVM').val('');
+    $('#itemNumber').val('');
     $('#change').val('');
-  }
-  else{
-    var numQuarters = Math.floor(money/0.25);
-    money = (money % 0.25).toFixed(2);
-    var numDimes = Math.floor(money/0.1);
-    money = (money % 0.1).toFixed(2);
-    var numNickels = Math.floor(money/0.05);
-    money = (money % 0.05).toFixed(2);
-    var numPennies = money;
+    clearTable();
+    loadItems();
+    $('#changeReturn').hide();
+}
+function clearTable() {
+    $('#contentRows').empty();
 
-    var changeMessage = '';
-
-    if (numQuarters == 1){
-      changeMessage+= '1 quarter';
-    }
-    else if (numQuarters>1){
-      changeMessage+= numQuarters+' quarters';
-    }
-
-    if (numDimes == 1){
-      if (numQuarters>=1) {changeMessage+=', ';}
-      changeMessage+= '1 dime';
-    }
-    else if (numDimes>1){
-      if (numQuarters>=1) {changeMessage+=', ';}
-      changeMessage+= numDimes+' dimes';
-    }
-
-    if (numNickels == 1){
-      if (numQuarters>=1 || numDimes>=1) {changeMessage+=', ';}
-      changeMessage+= '1 nickel';
-    }
-    else if (numNickels>1){
-      if (numQuarters>=1 || numDimes>=1) {changeMessage+=', ';}
-      changeMessage+= numNickels+' nickels';
-    }
-
-    if (numPennies == 1){
-      if (numQuarters>=1 || numDimes>=1 || numNickels>=1) {changeMessage+=', ';}
-      changeMessage+= '1 penny';
-    }
-    else if (numPennies>1){
-      if (numQuarters>=1 || numDimes>=1 || numNickels>=1) {changeMessage+=', ';}
-      changeMessage+=numPennies+' pennies';
-    }
-
-    $('#change').val(changeMessage); //display change returned
-    $('#totalMoneyIn').val(0.00.toFixed(2));
-
-  }
-  $('#messages').val('');
-  $('#item').val('');
-  clearItems();
-  loadItems(); //refresh item list
 }
