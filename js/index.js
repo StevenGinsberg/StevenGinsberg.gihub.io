@@ -12,7 +12,7 @@ function loadItems() {
     // $('changeReturn').hide();
     $.ajax({
         type: 'GET',
-        url: 'http://vending.us-east-1.elasticbeanstalk.com/items',
+        url: 'http://vending.us-east-1.elasticbeanstalk.com',
         success: function (itemArray) {
 
             let group = 0;
