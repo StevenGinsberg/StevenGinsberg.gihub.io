@@ -13,6 +13,16 @@ function loadItems() {
     $.ajax({
         type: 'GET',
         url: 'https://vending.us-east-1.elasticbeanstalk.com',
+        function markdownToContainer(data) {
+  markdown = marked(data);
+  $('#container').html(markdown);
+}
+
+$.get('https://vending.us-east-1.elasticbeanstalk.com', function() {
+})
+.done(function(data) {
+  markdownToContainer(data);
+})
         success: function (itemArray) {
 
             let group = 0;
